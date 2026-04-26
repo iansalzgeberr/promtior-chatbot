@@ -1,6 +1,6 @@
 # Promtior RAG Chatbot
 
-A conversational chatbot that uses **RAG (Retrieval Augmented Generation)** to answer questions about Promtior. Built with LangChain, LangServe, OpenAI, and Streamlit as part of the Promtior AI Engineer technical test.
+A conversational chatbot that uses **RAG (Retrieval Augmented Generation)** to answer questions about Promtior. Built with LangChain, LangServe, OpenAI, and Streamlit.
 
 ## What it does
 
