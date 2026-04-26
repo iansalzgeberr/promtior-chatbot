@@ -15,6 +15,7 @@ Como ejecutar:
 
 Nota: El backend (server.py) debe estar corriendo en localhost:8000
 """
+from pathlib import Path
 import httpx
 import streamlit as st
 
@@ -22,10 +23,12 @@ import streamlit as st
 # En produccion, cambiar por la URL de AWS
 LANGSERVE_URL = "http://localhost:8000/chat/invoke"
 
+LOGO_PATH = Path(__file__).parent / "logo-promptior.png"
+
 # Configuracion de la pagina
 st.set_page_config(
     page_title="Promtior AI Assistant",
-    page_icon="🤖",
+    page_icon=str(LOGO_PATH),
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -63,7 +66,7 @@ st.markdown("""
 # Header
 st.markdown("""
 <div class="main-header">
-    <h1>🤖 Promtior AI Assistant</h1>
+    <h1> Promtior AI Assistant</h1>
     <p>Preguntame sobre Promtior - servicios, historia, clientes y mas</p>
 </div>
 """, unsafe_allow_html=True)
@@ -122,7 +125,8 @@ def ask_chatbot(question: str, chat_history: list) -> str:
 
 # Mostrar historial de mensajes
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    avatar = str(LOGO_PATH) if message["role"] == "assistant" else None
+    with st.chat_message(message["role"], avatar=avatar):
         st.write(message["content"])
 
 # Input del usuario (siempre al final, como en ChatGPT)
@@ -135,7 +139,7 @@ if prompt := st.chat_input("Escribe tu pregunta sobre Promtior..."):
         st.write(prompt)
 
     # Obtener respuesta del chatbot
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=str(LOGO_PATH)):
         with st.spinner("Buscando informacion..."):
             response = ask_chatbot(prompt, st.session_state.messages)
         st.write(response)
@@ -161,7 +165,7 @@ with st.sidebar:
     **Stack tecnologico:**
     - LangChain + LangServe
     - OpenAI GPT-4o-mini
-    - FAISS Vector Store
+    - ChromaDB Vector Store
     - Streamlit
     """)
 

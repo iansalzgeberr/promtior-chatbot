@@ -152,8 +152,6 @@ docker-compose up -d --build
 
 4. Access at `http://YOUR_EC2_IP:8501`
 
-See [`doc/aws_deploy_guide.txt`](doc/aws_deploy_guide.txt) for the full step-by-step guide including troubleshooting.
-
 ## API Reference
 
 **Invoke (single question):**
@@ -194,8 +192,7 @@ promtior-chatbot/
 │   └── promtior_info.pdf   # Promtior presentation (extra source)
 ├── doc/
 │   ├── project_overview.md     # Implementation approach and decisions
-│   ├── component_diagram.png   # Architecture diagram
-│   └── aws_deploy_guide.txt    # Full AWS deployment guide
+│   └── component_diagram.png   # Architecture diagram
 ├── vectorstore/            # ChromaDB index (auto-generated, gitignored)
 ├── Dockerfile              # Backend container
 ├── Dockerfile.frontend     # Frontend container
