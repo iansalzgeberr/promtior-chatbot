@@ -55,7 +55,7 @@ Documents
 
 **Query flow** (on every user message):
 1. Convert the question to a vector
-2. Find the 6 most semantically similar chunks in ChromaDB
+2. Find the 8 most semantically similar chunks in ChromaDB
 3. Inject chunks + conversation history + question into the prompt
 4. GPT-4o-mini generates a grounded answer
 

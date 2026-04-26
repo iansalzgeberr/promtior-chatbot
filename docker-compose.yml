@@ -1,0 +1,41 @@
+version: "3.8"
+
+# docker-compose permite levantar multiples servicios con un solo comando:
+# docker-compose up
+#
+# Servicios:
+# - backend: LangServe API en puerto 8000
+# - frontend: Streamlit UI en puerto 8501
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      # Persistir el vector store entre reinicios del contenedor
+      - ./vectorstore:/app/vectorstore
+      # Montar el PDF de datos
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    environment:
+      # URL del backend (usando el nombre del servicio Docker)
+      - LANGSERVE_URL=http://backend:8000/chat/invoke
+    depends_on:
+      backend:
+        condition: service_healthy

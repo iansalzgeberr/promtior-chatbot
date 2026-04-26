@@ -1,0 +1,24 @@
+# Dockerfile para el frontend Streamlit
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Solo instalar las dependencias del frontend
+RUN pip install --no-cache-dir streamlit==1.39.0 httpx==0.27.2
+
+# Copiar solo el frontend
+COPY frontend/ ./frontend/
+
+# Puerto de Streamlit
+EXPOSE 8501
+
+# Variable de entorno para la URL del backend
+# Se puede sobreescribir en docker-compose o en el deployment
+ENV LANGSERVE_URL=http://localhost:8000/chat/invoke
+
+# Ejecutar Streamlit
+# --server.address=0.0.0.0 permite conexiones externas
+CMD ["streamlit", "run", "frontend/streamlit_app.py", \
+     "--server.address=0.0.0.0", \
+     "--server.port=8501", \
+     "--server.headless=true"]
