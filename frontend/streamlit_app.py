@@ -21,12 +21,13 @@ import streamlit as st
 import os
 
 LANGSERVE_URL = os.getenv("LANGSERVE_URL", "http://backend:8000/chat/invoke")
-LOGO_PATH = Path(__file__).parent / "logo-promptior.png"
+FAV_PATH = Path(__file__).parent / "fav-icone.png"
+CHAT_AVATAR_PATH = Path(__file__).parent / "fav-icone.png"
 
 # Configuracion de la pagina
 st.set_page_config(
     page_title="Promtior AI Assistant",
-    page_icon=str(LOGO_PATH),
+    page_icon=str(FAV_PATH),
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -123,7 +124,7 @@ def ask_chatbot(question: str, chat_history: list) -> str:
 
 # Mostrar historial de mensajes
 for message in st.session_state.messages:
-    avatar = str(LOGO_PATH) if message["role"] == "assistant" else None
+    avatar = str(CHAT_AVATAR_PATH) if message["role"] == "assistant" else None
     with st.chat_message(message["role"], avatar=avatar):
         st.write(message["content"])
 
@@ -137,7 +138,7 @@ if prompt := st.chat_input("Escribe tu pregunta sobre Promtior..."):
         st.write(prompt)
 
     # Obtener respuesta del chatbot
-    with st.chat_message("assistant", avatar=str(LOGO_PATH)):
+    with st.chat_message("assistant", avatar=str(CHAT_AVATAR_PATH)):
         with st.spinner("Buscando informacion..."):
             response = ask_chatbot(prompt, st.session_state.messages)
         st.write(response)
@@ -186,9 +187,9 @@ with st.sidebar:
 
     st.divider()
 
-    if st.button("Limpiar historial", use_container_width=True):
+    if st.button("Limpiar chat", use_container_width=True):
         st.session_state.messages = [{
             "role": "assistant",
-            "content": "Historial limpiado. Como puedo ayudarte?",
+            "content": "Chat limpiado. Como puedo ayudarte?",
         }]
         st.rerun()

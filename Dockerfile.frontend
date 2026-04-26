@@ -6,8 +6,9 @@ WORKDIR /app
 # Solo instalar las dependencias del frontend
 RUN pip install --no-cache-dir streamlit==1.39.0 httpx==0.27.2
 
-# Copiar solo el frontend
+# Copiar frontend y configuracion de Streamlit
 COPY frontend/ ./frontend/
+COPY .streamlit/ ./.streamlit/
 
 # Puerto de Streamlit
 EXPOSE 8501
@@ -21,4 +22,5 @@ ENV LANGSERVE_URL=http://localhost:8000/chat/invoke
 CMD ["streamlit", "run", "frontend/streamlit_app.py", \
      "--server.address=0.0.0.0", \
      "--server.port=8501", \
-     "--server.headless=true"]
+     "--server.headless=true", \
+     "--theme.base=dark"]
