@@ -37,5 +37,4 @@ services:
       # URL del backend (usando el nombre del servicio Docker)
       - LANGSERVE_URL=http://backend:8000/chat/invoke
     depends_on:
-      backend:
-        condition: service_healthy
+      -backend

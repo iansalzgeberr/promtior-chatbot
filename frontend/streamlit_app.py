@@ -18,11 +18,9 @@ Nota: El backend (server.py) debe estar corriendo en localhost:8000
 from pathlib import Path
 import httpx
 import streamlit as st
+import os
 
-# URL del backend LangServe
-# En produccion, cambiar por la URL de AWS
-LANGSERVE_URL = "http://localhost:8000/chat/invoke"
-
+LANGSERVE_URL = os.getenv("LANGSERVE_URL", "http://backend:8000/chat/invoke")
 LOGO_PATH = Path(__file__).parent / "logo-promptior.png"
 
 # Configuracion de la pagina
