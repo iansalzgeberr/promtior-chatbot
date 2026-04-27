@@ -20,7 +20,7 @@ import httpx
 import streamlit as st
 import os
 
-LANGSERVE_URL = os.getenv("LANGSERVE_URL", "http://backend:8000/chat/invoke")
+LANGSERVE_URL = os.getenv("LANGSERVE_URL", "http://localhost:8000/chat/invoke")
 FAV_PATH = Path(__file__).parent / "fav-icone.png"
 CHAT_AVATAR_PATH = Path(__file__).parent / "fav-icone.png"
 
@@ -58,6 +58,10 @@ st.markdown("""
         font-size: 0.75rem;
         color: #888;
         margin-top: 0.5rem;
+    }
+    /* Ocultar icono de ancla que Streamlit agrega a los headers */
+    h1 a, h2 a, h3 a {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
