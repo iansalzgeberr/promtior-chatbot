@@ -20,7 +20,7 @@ import httpx
 import streamlit as st
 import os
 
-LANGSERVE_URL = os.getenv("LANGSERVE_URL", "http://localhost:8000/chat/invoke")
+LANGSERVE_URL = os.getenv("LANGSERVE_URL", "http://backend:8000/chat/invoke")
 FAV_PATH = Path(__file__).parent / "fav-icone.png"
 CHAT_AVATAR_PATH = Path(__file__).parent / "fav-icone.png"
 
