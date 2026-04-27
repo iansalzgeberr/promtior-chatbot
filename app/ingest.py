@@ -95,12 +95,81 @@ def scrape_website(urls: List[str]) -> List[Document]:
     return documents
 
 
+def _cluster_words_by_column(words: list, tolerance: int = 80) -> list:
+    """
+    Agrupa palabras en columnas por proximidad de x0.
+
+    Compara cada palabra contra el x0 más cercano dentro de cada columna
+    existente (no contra el primero). Esto permite manejar nombres como
+    "Forestal Atlántico Sur" donde las palabras no están perfectamente alineadas.
+    """
+    columns = []
+    for word in sorted(words, key=lambda w: w["x0"]):
+        best_col, best_dist = None, float("inf")
+        for col in columns:
+            dist = min(abs(word["x0"] - w["x0"]) for w in col)
+            if dist < tolerance and dist < best_dist:
+                best_dist, best_col = dist, col
+        if best_col is not None:
+            best_col.append(word)
+        else:
+            columns.append([word])
+    return columns
+
+
+def _extract_client_grid(page) -> str:
+    """
+    Reconstruye la lista de clientes desde la página con grilla de logos.
+
+    El PDF tiene logos en columnas múltiples. Usando coordenadas x/y de
+    cada palabra, agrupamos por fila (saltos verticales > 100px) y luego
+    por columna (proximidad x0 con tolerance=80px) para reconstruir cada
+    nombre correctamente sin ningún fix hardcodeado.
+    """
+    words = page.extract_words(x_tolerance=5, y_tolerance=3)
+
+    intro_words = [w for w in words if w["top"] < 400]
+    grid_words  = [w for w in words if w["top"] >= 400]
+
+    intro_text = " ".join(
+        w["text"] for w in sorted(intro_words, key=lambda w: (w["top"], w["x0"]))
+    )
+
+    if not grid_words:
+        return intro_text
+
+    # Agrupar en filas por saltos verticales > 100px
+    sorted_words = sorted(grid_words, key=lambda w: w["top"])
+    rows, current_row = [], [sorted_words[0]]
+    for word in sorted_words[1:]:
+        if word["top"] - current_row[-1]["top"] > 100:
+            rows.append(current_row)
+            current_row = [word]
+        else:
+            current_row.append(word)
+    rows.append(current_row)
+
+    # Reconstruir nombres: una columna = un cliente
+    client_names = []
+    for row in rows:
+        columns = _cluster_words_by_column(row, tolerance=80)
+        for col in sorted(columns, key=lambda c: min(w["x0"] for w in c)):
+            name = " ".join(
+                w["text"] for w in sorted(col, key=lambda w: (w["top"], w["x0"]))
+            )
+            client_names.append(name)
+
+    clients_text = "Promtior clients:\n" + "\n".join(f"- {n}" for n in client_names)
+    return f"{intro_text}\n\n{clients_text}"
+
+
 def load_pdf(pdf_path: str) -> List[Document]:
     """
-    Carga el PDF de la presentacion de Promtior.
+    Carga el PDF de la presentacion de Promtior usando pdfplumber.
 
-    Usamos PyPDFLoader de LangChain que divide automaticamente el PDF
-    en paginas, cada una como un Document separado.
+    pdfplumber extrae texto con conciencia posicional (coordenadas x/y),
+    lo que permite reconstruir correctamente los nombres de clientes desde
+    la pagina con grilla de logos — sin fixes hardcodeados.
 
     Args:
         pdf_path: Ruta al archivo PDF
@@ -114,19 +183,31 @@ def load_pdf(pdf_path: str) -> List[Document]:
         return []
 
     try:
-        from langchain_community.document_loaders import PyPDFLoader
+        import pdfplumber
 
         logger.info(f"Cargando PDF: {pdf_path}")
-        loader = PyPDFLoader(pdf_path)
-        pages = loader.load()
+        documents = []
 
-        # Agregar metadata de tipo para identificar la fuente
-        for page in pages:
-            page.metadata["type"] = "pdf"
-            page.metadata["source"] = "promtior_presentation.pdf"
+        with pdfplumber.open(pdf_path) as pdf:
+            for i, page in enumerate(pdf.pages):
+                text = page.extract_text() or ""
 
-        logger.info(f"  -> {len(pages)} paginas cargadas del PDF")
-        return pages
+                # La pagina de clientes tiene grilla de logos — extraer con layout
+                if "Bionic" in text and "Organizations" in text:
+                    text = _extract_client_grid(page)
+
+                if text.strip():
+                    documents.append(Document(
+                        page_content=text,
+                        metadata={
+                            "source": "promtior_presentation.pdf",
+                            "type": "pdf",
+                            "page": i + 1,
+                        },
+                    ))
+
+        logger.info(f"  -> {len(documents)} paginas cargadas del PDF")
+        return documents
 
     except Exception as e:
         logger.error(f"Error al cargar el PDF: {e}")
@@ -230,7 +311,6 @@ def run_ingestion() -> Chroma:
     pdf_docs = load_pdf(PDF_PATH)
     all_documents.extend(pdf_docs)
     logger.info(f"Documentos PDF cargados: {len(pdf_docs)}")
-
 
     if not all_documents:
         raise RuntimeError("No se pudo cargar ningun documento. Verifica la conexion a internet.")
